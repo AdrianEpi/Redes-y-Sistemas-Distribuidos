@@ -262,7 +262,7 @@ void ClientConnection::WaitForRequests() {
 		else if (COMMAND("RETR")) 
 		{
 			char arg2[MAX_BUFF];
-			char cadena[128];
+			char cadena[MAX_BUFF];
 			int i;
 			fscanf(fd, "%s", arg2);
 			if (logged_in == true )
@@ -272,20 +272,21 @@ void ClientConnection::WaitForRequests() {
 				fprintf(fd, "150 File status okay; about to open data connection\n");
 				 // Abre un fichero de entrada
 				
-				FILE * f;
+				FILE* f;
 				f = fopen(arg2, "r");
-				if (f==NULL) {fputs ("File error",stderr); exit (1);}
+				i = 200;
+				do
+				{
+					i = fread(cadena,sizeof(char), ftell(f), f);
+					//printf("%s \n", cadena);
+					//i -= ftell(f);
+				}while(i == MAX_BUFF);
 
-				//do
-				//{
-					fread(cadena,1, ftell(f), f);
-					printf("%s \n", cadena);
-					i += 128;
-				//}while(!f.eof());
 				fclose(f);
-				printf("El tamaño total EEEEESSSS: %d\n", i);
+				//printf("El tamaño total EEEEESSSS: %d\n", i);
 				fprintf(fd, "226 Closing data connection.\n");
-				printf("Pedro pica piedras en la cantera con beelma\n");
+				//printf("Pedro pica piedras en la cantera con beelma\n");
+				close(data_socket);
 
 			}
 			/*if (logged_in == true )
@@ -324,18 +325,31 @@ void ClientConnection::WaitForRequests() {
 		{
 			char arg2[MAX_BUFF];
 			fscanf(fd, "%s", arg2);
+			int cadena[MAX_BUFF];
+			int i;
 			if (logged_in == true )
 			{	
-				if(1)//Existe el fichero
-				{
-
-				}
-				else
-				{
-
-				}
 				//Faltaría enviar el archivo
-				fprintf(fd, "150 File status okay; about to open data connection.\n");
+				fprintf(fd, "150 File status okay; about to open data connection\n");
+				fflush(fd);
+				 // Abre un fichero de entrada
+				
+				FILE* f;
+				f = fopen(arg2, "r");
+				i = 200;
+				do
+				{
+					i = recv(data_socket,cadena, ftell(f), 0);
+					//printf("%s \n", cadena);
+					//i -= ftell(f);
+				}while(i == MAX_BUFF);
+
+				fclose(f);
+				//printf("El tamaño total EEEEESSSS: %d\n", i);
+				fprintf(fd, "226 Closing data connection.\n");
+				//printf("Pedro pica piedras en la cantera con beelma\n");
+				close(data_socket);
+				//Faltaría enviar el archivo
 			}
 
 			else if(logged_in == false)
